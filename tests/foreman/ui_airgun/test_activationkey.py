@@ -21,8 +21,7 @@ def test_positive_create(session):
     with session:
         session.activationkey.create({
             'name': ak_name,
-            'unlimited_hosts': False,
-            'max_hosts': 2,
+            'hosts_limit': 2,
             'description': gen_string('alpha'),
         })
         assert session.activationkey.search(ak_name) == ak_name
@@ -139,16 +138,16 @@ def test_negative_usage_limit(session, module_org):
     :CaseLevel: System
     """
     name = gen_string('alpha')
-    host_limit = '1'
+    hosts_limit = '1'
     with session:
         session.activationkey.create({
             'name': name,
             'lce': {ENVIRONMENT: True},
         })
         assert session.activationkey.search(name) == name
-        session.activationkey.update(name, values={'host_limit': host_limit})
+        session.activationkey.update(name, values={'hosts_limit': hosts_limit})
         ak = session.activationkey.read(name)
-        assert ak['host_limit'] == host_limit
+        assert ak['hosts_limit'] == hosts_limit
     with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
         with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
             vm1.install_katello_ca()
@@ -160,6 +159,6 @@ def test_negative_usage_limit(session, module_org):
             assert len(result.stderr) > 0
             assert (
                 'Max Hosts ({0}) reached for activation key'
-                .format(host_limit)
+                .format(hosts_limit)
                 in result.stderr
             )
